@@ -5,7 +5,6 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class VersionVector:
     value: list[int]
-    # self.value: list[int] = [0 for _ in range(nodes_n)]
 
     def increment(self, node_i: int):
         return VersionVector([version + 1 if node_i == i else version for i, version in enumerate(self.value)])
@@ -16,12 +15,12 @@ class VersionVector:
     @staticmethod
     def merge(a: VersionVector, b: VersionVector):
         return VersionVector([max(a, b) for a, b in zip(a.value, b.value)])
-
-    def __repr__(self):
-        return f'VersionVector({str(self.value)})'
     
     def __hash__(self):
         return hash(x for x in self.value)
+    
+    def __repr__(self):
+        return f'VersionVector({str(self.value)})'
 
 
 @dataclass(frozen=True)
@@ -63,7 +62,7 @@ class OrSet:
     
     @staticmethod
     def merge(a: OrSet, b: OrSet):
-        # no compression of redumdant elements here
+        # no compression of redundant elements here
         return OrSet(a.add_set | b.add_set, a.remove_set | b.remove_set, VersionVector.merge(a.version, b.version))
 
     def __repr__(self):
@@ -79,7 +78,6 @@ class Node:
         return self.states[-1]
 
     def write(self, value: OrSet):
-        # new_version = self.read().version.increment(self.i)
         self.states.append(value)
 
     def sync(self, other: Node):
@@ -129,43 +127,3 @@ class Client:
         node.write(new_value)
 
         print(f'{self.name}: remove {value}, write {new_value} to node {node.i} with {latest.version}')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# @dataclass
-# class Tombstone:
-#     value: str
-
-#     def __repr__(self):
-#         return f'T({self.value})'
-
-#     def __hash__(self):
-#         return hash('tombstone ' + self.value)
-
-# @dataclass
-# class TwoPhaseSet:
-#     set: set[str | Tombstone]
-#     version: VersionVector
-
-#     @property
-#     def visible_set(self):
-#         return {item for item in self.set if isinstance(item, str) and Tombstone(item) not in self.set}
-    
-#     @staticmethod
-#     def merge(a, b: TwoPhaseSet):
-#         return TwoPhaseSet(a.set | b.set, VersionVector.merge(a.version, b.version))
-
-#     def __repr__(self):
-#         return f'(x={"{}" if len(self.set) == 0 else self.set} v={self.version})'
